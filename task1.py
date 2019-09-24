@@ -106,7 +106,32 @@ def convolve2d(img, kernel):
         img_conv: nested list (int), convolved image.
     """
     # TODO: implement this function.
-    raise NotImplementedError
+    # raise NotImplementedError
+
+    imgSizeX = len(img)
+    imgSizeY = len(img[0])
+    kernelSizeX = len(kernel)
+    kernelSizeY = len(kernel[0])
+    paddingSizeX = kernelSizeX//2
+    paddingSizeY = kernelSizeY//2
+
+    flippedKernel = [[0 for x in range(imgSizeX)] for y in range(imgSizeY)]
+
+    for i in range(kernelSizeX):
+        for j in range(kernelSizeY):
+            flippedKernel[i][j] = kernel[kernelSizeX-i-1][kernelSizeY-j-1]
+
+    paddedImg = utils.zero_pad(img, paddingSizeX, paddingSizeY)
+    convolvedImg = [[0 for x in range(imgSizeX)] for y in range(imgSizeY)]
+
+    for i in range(imgSizeX):
+        for j in range(imgSizeY):
+            for u in range(kernelSizeX):
+                for v in range(kernelSizeY):
+                    convolvedImg[i][j] += flippedKernel[u][v]*paddedImg[i+u][j+v]
+
+    return convolvedImg
+
 
 def main():
     args = parse_args()
