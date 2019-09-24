@@ -115,11 +115,7 @@ def convolve2d(img, kernel):
     paddingSizeX = kernelSizeX//2
     paddingSizeY = kernelSizeY//2
 
-    flippedKernel = [[0 for x in range(imgSizeX)] for y in range(imgSizeY)]
-
-    for i in range(kernelSizeX):
-        for j in range(kernelSizeY):
-            flippedKernel[i][j] = kernel[kernelSizeX-i-1][kernelSizeY-j-1]
+    flippedKernel = utils.flip2d(kernel)
 
     paddedImg = utils.zero_pad(img, paddingSizeX, paddingSizeY)
     convolvedImg = [[0 for x in range(imgSizeX)] for y in range(imgSizeY)]
