@@ -58,7 +58,44 @@ def norm_xcorr2d(patch, template):
     Returns:
         value (float): the NCC value between a image patch and a template.
     """
-    raise NotImplementedError
+    # raise NotImplementedError
+
+    templatePixelSum = []
+    patchPixelSum = []
+    templateDimR = len(template)
+    templateDimC = len(template[0])
+    patchDimR = len(patch)
+    patchDimC = len(patch[0])
+
+    for i in range (templateDimR):
+        templatePixelSum.append(sum(template[i]))
+    templateMean = sum(templatePixelSum)/(templateDimR*templateDimC)
+
+    for i in range (patchDimR):
+        patchPixelSum.append(sum(patch[i]))
+    patchMean = sum(patchPixelSum)/(patchDimR*patchDimC)
+
+    numeratorSum = 0
+    templateVarianceSum = 0
+    patchVarianceSum = 0
+
+    # print(templateDimR, templateDimC, patchDimR, patchDimC)
+
+    for i in range(templateDimR):
+        for j in range(templateDimC):
+            # print('i, j', i, j)
+            numeratorSum += ((template[i][j]-templateMean)*(patch[i][j]-patchMean))
+            templateVarianceSum += (template[i][j]-templateMean)**2
+            patchVarianceSum += (patch[i][j]-patchMean)**2
+    # templateVariance = templateVarianceSum**0.5
+    # patchVariance = patchVarianceSum**0.5
+    denominator = (templateVarianceSum*patchVarianceSum)**0.5
+
+    ncc = numeratorSum/denominator
+
+    return ncc
+
+
 
 def match(img, template):
     """Locates the template, i.e., a image patch, in a large image using template matching techniques, i.e., NCC.
@@ -74,7 +111,28 @@ def match(img, template):
     """
     # TODO: implement this function.
     # raise NotImplementedError
-    raise NotImplementedError
+    # raise NotImplementedError
+    maxNCC = -1
+    templateDimR = len(template)
+    templateDimC = len(template[0])
+    imgDimR = len(img)
+    imgDimC = len(img[0])
+    # paddedImg = utils.zero_pad(img, templateDimR-1, templateDimC-1)
+
+    # print(templateDimR, templateDimC, len(paddedImg), len(paddedImg[0]))
+
+
+    for i in range(0, imgDimR-templateDimR-1):
+        for j in range(0, imgDimC-templateDimC-1):
+            # patch = utils.crop(paddedImg, i, i+templateDimR, j, j+templateDimC)
+            patch = utils.crop(img, i, i+templateDimR, j, j+templateDimC)
+            ncc = norm_xcorr2d(patch, template)
+            if(ncc > maxNCC):
+                maxNCC = ncc
+                locationX = i
+                locationY = j
+    return locationX, locationY, maxNCC
+
 
 def save_results(coordinates, template, template_name, rs_directory):
     results = {}
