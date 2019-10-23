@@ -12,6 +12,14 @@ Hint: It is recommended to record the two initial points each time, such that yo
 start from this two points in next iteration.
 """
 import random
+from itertools import permutations
+
+
+
+def calculate_perpendicular_dist(a, b, c):
+    return (abs(((b[1] - a[1]) * c[0]) - ((b[0] - a[0]) * c[1]) + (b[0] * a[1]) - (b[1] * a[0])) / (((b[1] - a[1])**2 + (b[0] - a[0])**2)**(1/2)))
+
+
 def solution(input_points, t, d, k):
     """
     :param input_points:
@@ -28,7 +36,60 @@ def solution(input_points, t, d, k):
     """
     # TODO: implement this function.
     # raise NotImplementedError
-    print(type(input_points[0]))
+    selected_points = set()
+    points = list()
+
+    for point in input_points:
+        points.append(list((point.values()))[1])
+    no_of_points = len(points)
+    output = list()
+    iterations = len(list(permutations(range(0, no_of_points),2)))
+
+    for itr in range(iterations):
+        sample = random.sample(range(0, no_of_points), 2)
+        while(tuple(sample) in selected_points):
+            sample = random.sample(range(0, no_of_points), 2)
+
+        selected_points.add(tuple(sample))
+
+        count = 0
+        avg_dist = 0.00
+        for i in range(no_of_points):
+
+            if(i == sample[0] or i == sample[1]):
+                pass
+            else:
+                dist = calculate_perpendicular_dist(points[sample[0]], points[sample[1]], points[i])
+                if(dist <= t):
+                    count += 1
+                    avg_dist += dist
+        if(count >= d):
+            avg_dist = avg_dist/count
+
+            result = dict()
+            result['key'] = sample
+            result['value'] = avg_dist
+            result['count'] = count
+            output.append(result)
+    sorted_output = sorted(output, key=lambda v: v['value'])
+
+    output_to_file_1 = list()
+    output_to_file_2 = list()
+    result_key = sorted_output[0]
+
+    sample = result_key['key']
+    for i in range(no_of_points):
+        if(i == sample[0] or i == sample[1]):
+            output_to_file_1.append(chr(i+97))
+        else:
+            dist = calculate_perpendicular_dist(points[sample[0]], points[sample[1]], points[i])
+            if(dist <= t):
+                output_to_file_1.append(chr(i+97))
+            else:
+                output_to_file_2.append(chr(i+97))
+    return output_to_file_1, output_to_file_2
+
+
 
 
 if __name__ == "__main__":
@@ -40,7 +101,7 @@ if __name__ == "__main__":
     d = 3
     k = 100
     inlier_points_name, outlier_points_name = solution(input_points, t, d, k)  # TODO
-    assert len(inlier_points_name) + len(outlier_points_name) == 8  
+    assert len(inlier_points_name) + len(outlier_points_name) == 8
     f = open('./results/task1_result.txt', 'w')
     f.write('inlier points: ')
     for inliers in inlier_points_name:
@@ -50,5 +111,3 @@ if __name__ == "__main__":
     for outliers in outlier_points_name:
         f.write(outliers + ',')
     f.close()
-
-
