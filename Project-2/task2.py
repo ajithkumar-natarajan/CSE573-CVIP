@@ -26,11 +26,6 @@ def solution(left_img, right_img):
 
     ratio = 0.8
     ransac_threshold = 4.0
-    # imageB = left_img
-    # imageA = right_img
-    # (kpsA, featuresA) = detectAndDescribe(imageA)
-
-    # gray = cv2.cvtColor(imageA, cv2.COLOR_BGR2GRAY)
 
     descriptor = cv2.xfeatures2d.SIFT_create()
 
@@ -41,34 +36,30 @@ def solution(left_img, right_img):
     keypoints_left_img = np.float32([keypoint_left_img.pt for keypoint_left_img in keypoints_left_img])
 
     matcher = cv2.DescriptorMatcher_create("BruteForce")
-    rawMatches = matcher.knnMatch(features_right_img, features_left_img, 2)
+    raw_matches = matcher.knnMatch(features_right_img, features_left_img, 2)
     matches = list()
-    for m in rawMatches:
-        if len(m) == 2 and m[0].distance < m[1].distance * ratio:
-            matches.append((m[0].trainIdx, m[0].queryIdx))
+    for match in raw_matches:
+        if len(match) == 2 and match[0].distance < match[1].distance * ratio:
+            matches.append((match[0].trainIdx, match[0].queryIdx))
 
     if len(matches) > 4:
-        ptsA = np.float32([keypoints_right_img[i] for (_, i) in matches])
-        ptsB = np.float32([keypoints_left_img[i] for (i, _) in matches])
+        points_right_img = np.float32([keypoints_right_img[i] for (_, i) in matches])
+        points_left_img = np.float32([keypoints_left_img[i] for (i, _) in matches])
 
-        (H, status) = cv2.findHomography(ptsA, ptsB, cv2.RANSAC, ransac_threshold)
+        (homography, mask) = cv2.findHomography(points_right_img, points_left_img, cv2.RANSAC, ransac_threshold)
 
-    M = (matches, H, status)
+    # M = (matches, H, status)
 
-    if M is None:
+    if homography is None:
         return None
-    (matches, H, status) = M
+    # (matches, H, status) = M
 
-    result = cv2.warpPerspective(right_img, H, (right_img.shape[1] + right_img.shape[1], right_img.shape[0]))
+    result = cv2.warpPerspective(right_img, homography, (right_img.shape[1] + right_img.shape[1], right_img.shape[0]))
     result[0:left_img.shape[0], 0:left_img.shape[1]] = left_img
-
-    # if showMatches:
-    #     vis = drawMatches(imageA, imageB, kpsA, kpsB, matches, status)
-    #     return (result, vis)
 
     return result
 
-    # raise NotImplementedError
+    raise NotImplementedError
 
 if __name__ == "__main__":
     left_img = cv2.imread('left.jpg')

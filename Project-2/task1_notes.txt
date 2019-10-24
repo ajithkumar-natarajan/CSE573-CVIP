@@ -1,0 +1,11 @@
+Algorithm used for task 1:
+
+1- Run the iterations regularly by randomly selecting two points, make a line through them, and then according to the orthogonal distance to that line and the threshold "t", find out how many inliers you have.
+
+2- If the number of inliers other than the two points you randomly selected was less than "d", continue to the next iterations
+
+3- If they are more than "d", then fit a line through those inliers (as well as the original two randomly sampled points). It is not clear which method to fit the line but I used least square linear regression. A more accurate model might be orthogonal linear regression. 
+
+4- Calculate the error with respect to the new line you fitted all your inliers to. It is not clear what is the error metric in that case but I used sum of squared distances (SSD) which is the square of orthogonal distance to the line. others may use vertical distancs measures like RSS maybe? I don't know maybe the instructors will elaborate more on that. Also, while I am not 100% sure, I calculate the error only for the inliers. I disregard the outliers completely when establishing the linear regression model.
+
+5- I then store that error and continue my iterations. The model with the least error is selected regardless of how many inliers are in that model given that the number of inliers is >(d+2).
