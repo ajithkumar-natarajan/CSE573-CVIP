@@ -20,72 +20,69 @@ def kmeans(img,k):
     # TODO: implement this function.
     np.random.seed(42)
     centroids = list()
+    cluster_label = list()
+    cluster_labels = list()
+    distances = list()
+    old_centroids = list()
+    dist = 0
+    min_dist = 2147483646
+    sum_min_dist = 0
+    final_distance = 2147483645
+    final_dist = 2147483646
+    final_centroids = list()
+    final_cluster_labels = list()
     unique = np.unique(img)
     centroids.append(np.random.choice(unique))
     centroids.append(np.random.choice(unique))
-    dist = 9999999
-    min_dist = 9999999
-    sum_min_dist = 0
-    cluster_labels = list()
-    labels = list()
-    distances = list()
-    old_centroids = list()
     j = 0
     length = 0
     init_centers = list()
-    final_distance = 999999999
-    final_centroids = list()
-    final_labels = list()
-    final_dist = 9999999999999
-    
-    pixel_dict={}
-    for i in img:
-        for j in i:
-            if j in pixel_dict:
-                pixel_dict.__setitem__(j,pixel_dict.get(j)+1)
-            else:
-                pixel_dict.__setitem__(j,1)
-
     for i in range(len(unique)):
-            while(j!=len(unique)):
-                if(i!=j):
-                    init_centers.append([unique[i],unique[j]])
-                j=j+1
-            j=i+1
-    # k = 0
+        while(j!=len(unique)):
+            if(i!=j):
+                init_centers.append([unique[i],unique[j]])
+            j = j+1
+        j = i+1
+
     for init_center in init_centers:
-        # k += 1
         centroids[0] = init_center[0]
         centroids[1] = init_center[1]
         while(centroids!=old_centroids):
-            cluster_labels = np.copy(img)
             old_centroids = centroids[:]
-            for keys in pixel_dict:
-                distance_1 = abs(centroids[0] - keys)
-                distance_2 = abs(centroids[1] - keys)
-                if(distance_1<distance_2):
-                    min_dist = distance_1*pixel_dict.get(keys)
-                    label = 0
-                else:
-                    min_dist = distance_2*pixel_dict.get(keys)
-                    label = 1
-                cluster_labels[cluster_labels==keys] = label
-                sum_min_dist += min_dist
-                dist = 9999999
-                min_dist = 9999999
+            for i in img:
+                for j in i:
+                    for center in centroids:
+                        dist = np.sqrt((center - j)**2)
+                        if(dist<min_dist):
+                            min_dist = dist
+                            if(center==centroids[1]):
+                                label = 1
+                            else:
+                                label = 0
+                        elif(dist == min_dist):
+                            min_dist = dist
+                            if(centroids[1]<centroids[0]):
+                                label = 1
+                            else:
+                                label = 0
+                    cluster_label.append(label)
+                    sum_min_dist += min_dist
+                    dist = 0
+                    min_dist = 2147483646
             final_distance = sum_min_dist
             sum_min_dist = 0
-            labels = np.reshape(cluster_labels,(img.shape[0],img.shape[1]))
-            cluster_labels = list()
-            centroids[0]=np.mean(np.ma.array(img,mask=(labels)))
-            centroids[1]=np.mean(np.ma.array(img,mask=np.logical_not(labels)))
+            cluster_labels = np.reshape(cluster_label,(img.shape[0],img.shape[1]))
+            cluster_label.clear()
+            centroids[0] = np.mean(np.ma.array(img, mask=(cluster_labels)))
+            centroids[1] = np.mean(np.ma.array(img, mask=np.logical_not(cluster_labels)))
         if(final_distance<final_dist):
+            for i in range(len(centroids)):
+                centroids[i] = int(round(centroids[i]))
             final_centroids = centroids
-            final_labels = labels
+            final_cluster_labels = cluster_labels
             final_dist = final_distance
-    return(final_centroids,final_labels, final_dist)
-        
-    # return final_centroids,final_labels, final_dist 
+
+    return final_centroids, final_cluster_labels, final_dist 
 
 
 def visualize(centers,labels):
@@ -115,7 +112,8 @@ if __name__ == "__main__":
     end_time = time.time()
 
     running_time = end_time - start_time
-    
+    print(running_time)
+
     centers = list(centers)
     with open('results/task1.json', "w") as jsonFile:
         jsonFile.write(json.dumps({"centers":centers, "distance":sumdistance, "time":running_time}))
